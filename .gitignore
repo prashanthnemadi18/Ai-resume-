@@ -1,0 +1,68 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Testing
+tests/
+test_reports/
+*.test
+coverage/
+.pytest_cache/
+
+# System/Tool specific
+.emergent/
+memory/
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Documentation (keep only essential)
+DESIGN_*.md
+*_COMPLETE.md
+*_ENHANCEMENTS.md
+*_REDESIGN.md
+*_PLAN.md
+*_WORKFLOW.md
+*_MIGRATION.md
+*_SETUP.md
+*_SUMMARY.md
+*_SHOWCASE.md
+
+# Backup files
+*_backup.*
+*.bak
+*.old
+
+# OS generated
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
