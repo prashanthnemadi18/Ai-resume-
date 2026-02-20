@@ -31,7 +31,13 @@ function Login({ onLogin }) {
       const response = await axios.post('/auth/login', formData);
       onLogin(response.data.token, response.data.user);
     } catch (err) {
-      setError(err.response?.data?.detail || 'Login failed. Please try again.');
+      console.error('Login error:', err);
+      const errorMessage = err.response?.data?.message || 
+                          err.response?.data?.error || 
+                          err.response?.data?.detail || 
+                          err.message || 
+                          'Login failed. Please try again.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

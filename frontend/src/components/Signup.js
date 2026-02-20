@@ -32,7 +32,13 @@ function Signup({ onSignup }) {
       const response = await axios.post('/auth/signup', formData);
       onSignup(response.data.token, response.data.user);
     } catch (err) {
-      setError(err.response?.data?.detail || 'Signup failed. Please try again.');
+      console.error('Signup error:', err);
+      const errorMessage = err.response?.data?.message || 
+                          err.response?.data?.error || 
+                          err.response?.data?.detail || 
+                          err.message || 
+                          'Signup failed. Please try again.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

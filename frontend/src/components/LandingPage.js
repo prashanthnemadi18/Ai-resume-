@@ -15,7 +15,9 @@ import {
   FaDownload,
   FaEdit,
   FaEnvelope,
-  FaPhone
+  FaPhone,
+  FaBriefcase,
+  FaCode
 } from 'react-icons/fa';
 import SimpleBackground from './SimpleBackground';
 
@@ -275,40 +277,50 @@ function LandingPage() {
                 transition={{ duration: 6, repeat: Infinity }}
                 className="relative z-10"
               >
-                <div className="bg-white/5 backdrop-blur-sm rounded-3xl shadow-2xl shadow-purple-500/20 p-8 border border-purple-500/30">
-                  <div className="space-y-3 text-left text-xs">
-                    <div className="text-center border-b-2 border-purple-500 pb-3">
-                      <h3 className="text-2xl font-bold text-white">PRASHANTH NEMADI</h3>
-                      <p className="text-sm text-purple-400 mt-1">Fullstack Developer</p>
-                      <div className="flex justify-center items-center gap-3 text-xs text-gray-300 mt-2">
-                        <span className="flex items-center space-x-1">
+                <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl rounded-3xl shadow-2xl shadow-purple-500/30 p-8 border border-purple-500/30">
+                  <div className="space-y-4 text-left">
+                    <div className="text-center border-b-2 border-purple-500/50 pb-4">
+                      <h3 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-sky-400 bg-clip-text text-transparent">PRASHANTH NEMADI</h3>
+                      <p className="text-lg text-purple-400 mt-2 font-semibold">Fullstack Developer</p>
+                      <div className="flex justify-center items-center gap-4 text-sm text-gray-300 mt-3">
+                        <span className="flex items-center space-x-2 bg-white/5 px-3 py-1 rounded-lg">
                           <FaEnvelope className="text-purple-400" />
                           <span>prashanth@email.com</span>
                         </span>
-                        <span className="flex items-center space-x-1">
+                        <span className="flex items-center space-x-2 bg-white/5 px-3 py-1 rounded-lg">
                           <FaPhone className="text-purple-400" />
                           <span>+91-XXXXXXXXXX</span>
                         </span>
                       </div>
                     </div>
                     
-                    <div>
-                      <h4 className="text-sm font-bold text-purple-400 mb-2">PROFESSIONAL SUMMARY</h4>
-                      <p className="text-xs text-gray-300 leading-relaxed">
-                        Junior Full Stack Web Developer with strong hands-on experience in building responsive applications...
+                    <div className="bg-white/5 rounded-xl p-4 border border-purple-500/20">
+                      <h4 className="text-base font-bold text-purple-400 mb-3 flex items-center space-x-2">
+                        <FaBriefcase className="text-purple-400" />
+                        <span>PROFESSIONAL SUMMARY</span>
+                      </h4>
+                      <p className="text-sm text-gray-300 leading-relaxed">
+                        Junior Full Stack Web Developer with strong hands-on experience in building responsive applications using modern technologies. Passionate about creating efficient, scalable solutions...
                       </p>
                     </div>
                     
-                    <div>
-                      <h4 className="text-sm font-bold text-purple-400 mb-2">TECHNICAL SKILLS</h4>
+                    <div className="bg-white/5 rounded-xl p-4 border border-purple-500/20">
+                      <h4 className="text-base font-bold text-purple-400 mb-3 flex items-center space-x-2">
+                        <FaCode className="text-purple-400" />
+                        <span>TECHNICAL SKILLS</span>
+                      </h4>
                       <div className="flex flex-wrap gap-2">
-                        {['Python', 'Java', 'React', 'Node.js'].map((skill, i) => (
-                          <span
+                        {['Python', 'Java', 'React', 'Node.js', 'Spring Boot', 'PostgreSQL'].map((skill, i) => (
+                          <motion.span
                             key={i}
-                            className="px-3 py-1 bg-gradient-to-r from-purple-500/30 to-sky-500/30 text-purple-300 rounded-full text-xs border border-purple-400/50"
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ delay: i * 0.1 }}
+                            whileHover={{ scale: 1.1, y: -2 }}
+                            className="px-3 py-1.5 bg-gradient-to-r from-purple-500/30 to-sky-500/30 text-purple-300 rounded-lg text-xs font-semibold border border-purple-400/50 shadow-lg"
                           >
                             {skill}
-                          </span>
+                          </motion.span>
                         ))}
                       </div>
                     </div>
