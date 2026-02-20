@@ -27,11 +27,20 @@ function Login({ onLogin }) {
     setError('');
     setLoading(true);
 
+    console.log('Attempting login with:', { email: formData.email });
+
     try {
       const response = await axios.post('/auth/login', formData);
+      console.log('Login successful:', response.data);
       onLogin(response.data.token, response.data.user);
     } catch (err) {
-      console.error('Login error:', err);
+      console.error('Login error details:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+        statusText: err.response?.statusText
+      });
+      
       const errorMessage = err.response?.data?.message || 
                           err.response?.data?.error || 
                           err.response?.data?.detail || 

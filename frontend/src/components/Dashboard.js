@@ -27,6 +27,8 @@ import {
   FaCheckCircle,
   FaArrowRight
 } from 'react-icons/fa';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 import axios from '../api/axios';
 import SimpleBackground from './SimpleBackground';
 
@@ -88,6 +90,379 @@ function Dashboard({ user, onLogout }) {
       } catch (error) {
         console.error('Error deleting resume:', error);
       }
+    }
+  };
+
+  const handleViewResume = (resume) => {
+    // Navigate to resume builder in view mode
+    navigate(`/resume-builder/${resume.id}`, { state: { viewMode: true } });
+  };
+
+  const handleDownloadResume = async (resume) => {
+    try {
+      const doc = new jsPDF();
+      const personalInfo = resume.personalInfo || {};
+      const education = resume.education || [];
+      const experience = resume.experience || [];
+      const skills = resume.skills || [];
+      const projects = resume.projects || [];
+      const certifications = resume.certifications || [];
+      const achievements = resume.achievements || [];
+      
+      let yPos = 20;
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 15;
+      const contentWidth = pageWidth - (margin * 2);
+      
+      // Helper function to check if we need a new page
+      const checkPageBreak = (requiredSpace) => {
+        if (yPos + requiredSpace > pageHeight - 20) {
+          doc.addPage();
+          yPos = 20;
+          return true;
+        }
+        return false;
+      };
+      
+      // Helper function to add bullet points
+      const addBulletPoint = (text, indent = 0) => {
+        const bulletX = margin + indent;
+        const textX = bulletX + 5;
+        const maxWidth = contentWidth - indent - 5;
+        
+        doc.setFontSize(9);
+        doc.setTextColor(60, 60, 60);
+        doc.text('•', bulletX, yPos);
+        
+        const lines = doc.splitTextToSize(text, maxWidth);
+        doc.text(lines, textX, yPos);
+        yPos += lines.length * 4.5;
+      };
+      
+      // ==================== HEADER - NAME ====================
+      doc.setFontSize(20);
+      doc.setTextColor(0, 0, 0);
+      doc.setFont(undefined, 'bold');
+      const name = personalInfo.fullName || 'YOUR NAME';
+      const nameWidth = doc.getTextWidth(name);
+      doc.text(name, (pageWidth - nameWidth) / 2, yPos);
+      yPos += 8;
+      
+      // ==================== CONTACT INFO ====================
+      doc.setFontSize(9);
+      doc.setTextColor(60, 60, 60);
+      doc.setFont(undefined, 'normal');
+      
+      let contactParts = [];
+      if (personalInfo.email) contactParts.push(personalInfo.email);
+      if (personalInfo.phone) contactParts.push(personalInfo.phone);
+      if (personalInfo.location) contactParts.push(personalInfo.location);
+      
+      if (contactParts.length > 0) {
+        const contactLine1 = contactParts.join(' | ');
+        const contactWidth1 = doc.getTextWidth(contactLine1);
+        doc.text(contactLine1, (pageWidth - contactWidth1) / 2, yPos);
+        yPos += 4;
+      }
+      
+      let linkParts = [];
+      if (personalInfo.linkedin) linkParts.push(personalInfo.linkedin);
+      if (personalInfo.github) linkParts.push(personalInfo.github);
+      if (personalInfo.portfolio) linkParts.push(personalInfo.portfolio);
+      
+      if (linkParts.length > 0) {
+        const contactLine2 = linkParts.join(' | ');
+        const contactWidth2 = doc.getTextWidth(contactLine2);
+        doc.text(contactLine2, (pageWidth - contactWidth2) / 2, yPos);
+        yPos += 4;
+      }
+      
+      yPos += 3;
+      
+      // Horizontal line
+      doc.setDrawColor(0, 0, 0);
+      doc.setLineWidth(0.3);
+      doc.line(margin, yPos, pageWidth - margin, yPos);
+      yPos += 6;
+      
+      // ==================== PROFESSIONAL SUMMARY ====================
+      if (resume.summary) {
+        checkPageBreak(30);
+        
+        doc.setFontSize(11);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont(undefined, 'bold');
+        doc.text('PROFESSIONAL SUMMARY', margin, yPos);
+        yPos += 6;
+        
+        doc.setFontSize(9);
+        doc.setTextColor(60, 60, 60);
+        doc.setFont(undefined, 'normal');
+        
+        // Split summary into sentences for bullet points
+        const sentences = resume.summary.split(/[.!?]+/).filter(s => s.trim().length > 0);
+        sentences.forEach(sentence => {
+          if (sentence.trim()) {
+            checkPageBreak(10);
+            addBulletPoint(sentence.trim() + '.');
+          }
+        });
+        yPos += 3;
+      }
+      
+      // ==================== SKILLS ====================
+      if (skills.length > 0) {
+        checkPageBreak(30);
+        
+        doc.setFontSize(11);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont(undefined, 'bold');
+        doc.text('SKILLS', margin, yPos);
+        yPos += 6;
+        
+        // Group skills by category if possible, otherwise show as list
+        const skillCategories = {
+          'Programming Languages': [],
+          'Frontend Technologies': [],
+          'Backend Technologies': [],
+          'Databases': [],
+          'Tools & Technologies': []
+        };
+        
+        // Try to categorize skills (simple keyword matching)
+        skills.forEach(skill => {
+          const skillLower = skill.toLowerCase();
+          if (skillLower.match(/python|java|javascript|c\+\+|c#|ruby|php|go|rust|kotlin|swift/)) {
+            skillCategories['Programming Languages'].push(skill);
+          } else if (skillLower.match(/react|angular|vue|html|css|bootstrap|tailwind|jquery/)) {
+            skillCategories['Frontend Technologies'].push(skill);
+          } else if (skillLower.match(/node|express|spring|django|flask|laravel|rails/)) {
+            skillCategories['Backend Technologies'].push(skill);
+          } else if (skillLower.match(/mysql|mongodb|postgresql|redis|oracle|sql/)) {
+            skillCategories['Databases'].push(skill);
+          } else {
+            skillCategories['Tools & Technologies'].push(skill);
+          }
+        });
+        
+        // Display categorized skills
+        Object.entries(skillCategories).forEach(([category, categorySkills]) => {
+          if (categorySkills.length > 0) {
+            checkPageBreak(10);
+            doc.setFontSize(9);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(0, 0, 0);
+            doc.text(`${category}:`, margin + 3, yPos);
+            yPos += 4.5;
+            
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(60, 60, 60);
+            const skillText = categorySkills.join(', ');
+            const skillLines = doc.splitTextToSize(skillText, contentWidth - 6);
+            doc.text(skillLines, margin + 6, yPos);
+            yPos += skillLines.length * 4.5 + 2;
+          }
+        });
+        yPos += 3;
+      }
+      
+      // ==================== EDUCATION ====================
+      if (education.length > 0) {
+        checkPageBreak(30);
+        
+        doc.setFontSize(11);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont(undefined, 'bold');
+        doc.text('EDUCATION', margin, yPos);
+        yPos += 6;
+        
+        education.forEach((edu, index) => {
+          checkPageBreak(20);
+          
+          // Degree and Date on same line
+          doc.setFontSize(10);
+          doc.setFont(undefined, 'bold');
+          doc.setTextColor(0, 0, 0);
+          const degree = edu.degree || 'Degree';
+          doc.text(degree, margin + 3, yPos);
+          
+          if (edu.graduationDate) {
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(60, 60, 60);
+            const dateText = edu.graduationDate;
+            const dateWidth = doc.getTextWidth(dateText);
+            doc.text(dateText, pageWidth - margin - dateWidth, yPos);
+          }
+          yPos += 5;
+          
+          // Institution
+          doc.setFontSize(9);
+          doc.setFont(undefined, 'italic');
+          doc.setTextColor(60, 60, 60);
+          doc.text(edu.institution || 'Institution', margin + 3, yPos);
+          yPos += 4;
+          
+          // GPA if available
+          if (edu.gpa) {
+            doc.setFont(undefined, 'normal');
+            doc.text(`GPA: ${edu.gpa}`, margin + 3, yPos);
+            yPos += 4;
+          }
+          
+          yPos += 3;
+        });
+        yPos += 2;
+      }
+      
+      // ==================== WORK EXPERIENCE ====================
+      if (experience.length > 0) {
+        checkPageBreak(30);
+        
+        doc.setFontSize(11);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont(undefined, 'bold');
+        doc.text('WORK EXPERIENCE', margin, yPos);
+        yPos += 6;
+        
+        experience.forEach((exp) => {
+          checkPageBreak(25);
+          
+          // Position and Date
+          doc.setFontSize(10);
+          doc.setFont(undefined, 'bold');
+          doc.setTextColor(0, 0, 0);
+          doc.text(exp.position || 'Position', margin + 3, yPos);
+          
+          const dateText = `${exp.startDate || ''} - ${exp.endDate || 'Present'}`;
+          doc.setFont(undefined, 'normal');
+          doc.setTextColor(60, 60, 60);
+          const dateWidth = doc.getTextWidth(dateText);
+          doc.text(dateText, pageWidth - margin - dateWidth, yPos);
+          yPos += 5;
+          
+          // Company
+          doc.setFontSize(9);
+          doc.setFont(undefined, 'italic');
+          doc.text(exp.company || 'Company', margin + 3, yPos);
+          yPos += 5;
+          
+          // Description as bullet points
+          if (exp.description) {
+            const descPoints = exp.description.split(/[.!?]+/).filter(s => s.trim().length > 10);
+            descPoints.forEach(point => {
+              if (point.trim()) {
+                checkPageBreak(10);
+                addBulletPoint(point.trim() + '.', 3);
+              }
+            });
+          }
+          yPos += 3;
+        });
+        yPos += 2;
+      }
+      
+      // ==================== PROJECTS ====================
+      if (projects.length > 0) {
+        checkPageBreak(30);
+        
+        doc.setFontSize(11);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont(undefined, 'bold');
+        doc.text('PROJECTS', margin, yPos);
+        yPos += 6;
+        
+        projects.forEach((proj) => {
+          checkPageBreak(25);
+          
+          // Project Name
+          doc.setFontSize(10);
+          doc.setFont(undefined, 'bold');
+          doc.setTextColor(0, 0, 0);
+          doc.text(proj.name || 'Project Name', margin + 3, yPos);
+          yPos += 5;
+          
+          // Technologies
+          if (proj.technologies) {
+            doc.setFontSize(9);
+            doc.setFont(undefined, 'italic');
+            doc.setTextColor(60, 60, 60);
+            const techText = `Technologies: ${proj.technologies}`;
+            const techLines = doc.splitTextToSize(techText, contentWidth - 6);
+            doc.text(techLines, margin + 3, yPos);
+            yPos += techLines.length * 4.5 + 1;
+          }
+          
+          // Description as bullet points
+          if (proj.description) {
+            const projPoints = proj.description.split(/[.!?]+/).filter(s => s.trim().length > 10);
+            projPoints.forEach(point => {
+              if (point.trim()) {
+                checkPageBreak(10);
+                addBulletPoint(point.trim() + '.', 3);
+              }
+            });
+          }
+          
+          // Project URL if available
+          if (proj.url) {
+            checkPageBreak(8);
+            doc.setFontSize(8);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(0, 0, 255);
+            doc.text(`Link: ${proj.url}`, margin + 6, yPos);
+            yPos += 4;
+          }
+          
+          yPos += 3;
+        });
+        yPos += 2;
+      }
+      
+      // ==================== CERTIFICATIONS ====================
+      if (certifications && certifications.length > 0) {
+        checkPageBreak(30);
+        
+        doc.setFontSize(11);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont(undefined, 'bold');
+        doc.text('CERTIFICATIONS', margin, yPos);
+        yPos += 6;
+        
+        certifications.forEach((cert) => {
+          checkPageBreak(10);
+          const certText = typeof cert === 'string' ? cert : cert.name || 'Certification';
+          addBulletPoint(certText, 3);
+        });
+        yPos += 3;
+      }
+      
+      // ==================== ACHIEVEMENTS ====================
+      if (achievements && achievements.length > 0) {
+        checkPageBreak(30);
+        
+        doc.setFontSize(11);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont(undefined, 'bold');
+        doc.text('ACHIEVEMENTS', margin, yPos);
+        yPos += 6;
+        
+        achievements.forEach((achievement) => {
+          checkPageBreak(10);
+          const achText = typeof achievement === 'string' ? achievement : achievement.title || 'Achievement';
+          addBulletPoint(achText, 3);
+        });
+        yPos += 3;
+      }
+      
+      // Save the PDF
+      const fileName = `${resume.name || 'resume'}.pdf`;
+      doc.save(fileName);
+      
+      console.log('Professional PDF downloaded successfully:', fileName);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF. Please try again.');
     }
   };
 
@@ -527,14 +902,18 @@ function Dashboard({ user, onLogout }) {
                       <motion.button
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
+                        onClick={() => handleViewResume(resume)}
                         className="px-4 py-2 bg-purple-500/20 text-purple-400 rounded-lg hover:bg-purple-500/30 transition-all"
+                        title="View Resume"
                       >
                         <FaEye />
                       </motion.button>
                       <motion.button
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
+                        onClick={() => handleDownloadResume(resume)}
                         className="px-4 py-2 bg-sky-500/20 text-sky-400 rounded-lg hover:bg-sky-500/30 transition-all"
+                        title="Download Resume"
                       >
                         <FaDownload />
                       </motion.button>

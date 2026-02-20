@@ -28,11 +28,20 @@ function Signup({ onSignup }) {
     setError('');
     setLoading(true);
 
+    console.log('Attempting signup with:', { name: formData.name, email: formData.email });
+
     try {
       const response = await axios.post('/auth/signup', formData);
+      console.log('Signup successful:', response.data);
       onSignup(response.data.token, response.data.user);
     } catch (err) {
-      console.error('Signup error:', err);
+      console.error('Signup error details:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+        statusText: err.response?.statusText
+      });
+      
       const errorMessage = err.response?.data?.message || 
                           err.response?.data?.error || 
                           err.response?.data?.detail || 
